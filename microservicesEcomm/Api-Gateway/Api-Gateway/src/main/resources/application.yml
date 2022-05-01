@@ -1,0 +1,46 @@
+server:
+  port: 2022
+
+spring:
+  application:
+    name: APIGATEWAY
+  cloud:
+    gateway:
+      routes:
+        - id: CustomarService
+          uri: lb://CustomarService
+          predicates:
+            - Path=/customars/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: CustomarService
+                fallbackuri: forward:/customarfallback
+
+        - id: ProductService
+          uri: lb://ProductService
+          predicates:
+            - Path=/products/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: ProductService
+                fallbackuri: forward:/productfallback
+
+hystrix:
+  command:
+    fallbackcmd:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 4000
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: hystrix.stream
+
+
+
